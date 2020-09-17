@@ -7,6 +7,9 @@ const { FaceDetection, FaceRecognition } = require('./helpers/azure')
 app.disable('x-powered-by')
 app.use(express.json())
 
+/*
+  @decription: main page
+*/
 app.get('/', function (req, res) {
   return res.json({
     status: true,
@@ -14,6 +17,10 @@ app.get('/', function (req, res) {
   })
 })
 
+/*
+  @example: localhost/detection?url={photoURL}
+  @decription: for face detection and give return id (identifier)
+*/
 app.get('/detection', async function (req, res) {
   try {
     const { url } = req.query
@@ -33,6 +40,10 @@ app.get('/detection', async function (req, res) {
   }
 })
 
+/*
+  @example: localhost/recognition?url={comparePhotoURL}&currentId={userId}
+  @decription: for compare (similiar face) of two identifier
+*/
 app.get('/recognition', async function (req, res) {
   try {
     const { url, currentId } = req.query
