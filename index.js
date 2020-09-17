@@ -63,6 +63,10 @@ app.get('/recognition', async function (req, res) {
   }
 })
 
+app.use('*', function (req, res) {
+  return res.redirect(`${req.protocol}://${req.headers.host}/`)
+})
+
 app.listen(port, function () {
   console.log('Server listening at port %s', port)
 })
