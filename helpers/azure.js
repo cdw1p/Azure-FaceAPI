@@ -37,10 +37,15 @@ const FaceDetection = (url) => {
               message: responseBody.error.message
             })
           } else {
-            if (responseBody.length == 1) {
+            if (responseBody.length > 0 && responseBody.length < 2) {
               resolve({
                 status: true,
                 message: JSON.parse(body)[0].faceId
+              })
+            } else if (responseBody.length == 0) {
+              resolve({
+                status: false,
+                message: 'Not one face detected.'
               })
             } else {
               resolve({
@@ -52,23 +57,67 @@ const FaceDetection = (url) => {
         })
       })
     } else {
-      return new Promise((resolve, reject) => {
-        resolve({
-          status: false,
-          message: 'A URL is badly formed or contains invalid characters.'
-        })
+      return Promise.resolve({
+        status: false,
+        message: 'A URL is badly formed or contains invalid characters.'
       })
     }
   } catch (err) {
-    return new Promise((resolve, reject) => {
-      resolve({
-        status: false,
-        message: err.message
+    return Promise.resolve({
+      status: false,
+      message: err.message
+    })
+  }
+}
+
+const FaceRecognition = async (url, currentId) => {
+  try {
+    const resFaceDetection = await FaceDetection(url)
+    if (resFaceDetection.status) {
+      const options = {
+        uri: `https://${process.env.AZURE_ENDPOINT}/face/v1.0/verify`,
+        headers: {
+          'Content-Type': 'application/json',
+          'Ocp-Apim-Subscription-Key': process.env.AZURE_APIKEY
+        }
+      }
+      options.body = JSON.stringify({ faceId1: currentId, faceId2: resFaceDetection.message })
+
+      return new Promise((resolve, reject) => {
+        request.post(options, (error, response, body) => {
+          if (error) {
+            reject(error)
+          }
+
+          const responseBody = JSON.parse(body)
+          if (responseBody.error) {
+            resolve({
+              status: false,
+              message: responseBody.error.message
+            })
+          } else {
+            resolve({
+              status: true,
+              message: responseBody
+            })
+          }
+        })
       })
+    } else {
+      return Promise.resolve({
+        status: false,
+        message: resFaceDetection.message
+      })
+    }
+  } catch (err) {
+    return Promise.resolve({
+      status: false,
+      message: err.message
     })
   }
 }
 
 module.exports = {
-  FaceDetection
+  FaceDetection,
+  FaceRecognition
 }
